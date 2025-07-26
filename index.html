@@ -56,41 +56,35 @@
 <p id="msg"></p>
 
 <script>
-  const form = document.getElementById("applyForm");
-  const msg = document.getElementById("msg");
+const form = document.getElementById("applyForm");
+const msg = document.getElementById("msg");
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-    if (localStorage.getItem("applied")) {
-      msg.textContent = "すでに申請済みです。";
-      return;
+  msg.textContent = "送信中...";
+  const data = Object.fromEntries(new FormData(form).entries());
+
+  try {
+    const res = await fetch("https://orange-star-1efd.kurea-ch124.workers.dev", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      mode: "cors"
+    });
+
+    if (res.ok) {
+      msg.textContent = "申請が完了しました。管理者に通知されました。";
+      form.reset();
+    } else {
+      const text = await res.text();
+      msg.textContent = "送信に失敗しました：" + text;
     }
-
-    msg.textContent = "送信中...";
-    const data = Object.fromEntries(new FormData(form).entries());
-
-    try {
-      const res = await fetch("https://orange-star-1efd.kurea-ch124.workers.dev", {  // ←ここをあなたのWorker URLに置き換える
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-        mode: "cors"
-      });
-
-      if (res.ok) {
-        msg.textContent = "申請が完了しました。管理者に通知されました。";
-        localStorage.setItem("applied", "true");
-        form.reset();
-      } else {
-        const text = await res.text();
-        msg.textContent = "送信に失敗しました：" + text;
-      }
-    } catch (err) {
-      msg.textContent = "送信に失敗しました（ネットワークエラー）";
-      console.error(err);
-    }
-  });
+  } catch (err) {
+    msg.textContent = "送信に失敗しました（ネットワークエラー）";
+    console.error(err);
+  }
+});
 </script>
 
 </body>
