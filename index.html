@@ -2,47 +2,95 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Minecraftサーバー申請フォーム</title>
+<style>
+  body {
+    font-family: sans-serif;
+    max-width: 480px;
+    margin: 2em auto;
+    padding: 1em;
+    background: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.1);
+  }
+  input, textarea {
+    width: 100%;
+    margin: 0.5em 0 1em;
+    padding: 0.6em;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1em;
+  }
+  button {
+    padding: 0.7em;
+    width: 100%;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    font-size: 1em;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  button:disabled {
+    background: #9ccc9c;
+  }
+  #msg {
+    margin-top: 1em;
+    font-weight: bold;
+  }
+</style>
 </head>
 <body>
-<h1>申請フォーム</h1>
-<form id="form">
-  <input name="name" placeholder="名前" required /><br />
-  <input name="email" type="email" placeholder="メール" required /><br />
-  <textarea name="purpose" placeholder="利用目的" required></textarea><br />
-  <button type="submit">送信</button>
+
+<h1>Minecraftサーバー申請フォーム</h1>
+
+<form id="applyForm">
+  <input name="name" type="text" placeholder="名前" required />
+  <input name="email" type="email" placeholder="メールアドレス" required />
+  <textarea name="purpose" rows="4" placeholder="利用目的を記入してください" required></textarea>
+  <button type="submit">送信する</button>
 </form>
+
 <p id="msg"></p>
 
 <script>
-  const form = document.getElementById('form');
-  const msg = document.getElementById('msg');
+  const form = document.getElementById("applyForm");
+  const msg = document.getElementById("msg");
 
-  form.addEventListener('submit', async e => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (localStorage.getItem('applied')) {
-      msg.textContent = 'すでに申請済みです。';
+
+    if (localStorage.getItem("applied")) {
+      msg.textContent = "すでに申請済みです。";
       return;
     }
+
+    msg.textContent = "送信中...";
     const data = Object.fromEntries(new FormData(form).entries());
 
     try {
-      const res = await fetch('https://your-cloudflare-worker-url.workers.dev', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("https://your-worker-url.workers.dev", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
+        mode: "cors"
       });
+
       if (res.ok) {
-        msg.textContent = '申請完了しました。管理者に通知されます。';
-        localStorage.setItem('applied', 'true');
+        msg.textContent = "申請が完了しました。管理者に通知されました。";
+        localStorage.setItem("applied", "true");
         form.reset();
       } else {
-        msg.textContent = '送信に失敗しました。';
+        const text = await res.text();
+        msg.textContent = "送信に失敗しました：" + text;
       }
-    } catch {
-      msg.textContent = '送信に失敗しました。';
+    } catch (err) {
+      msg.textContent = "送信に失敗しました（ネットワークエラー）";
+      console.error(err);
     }
   });
 </script>
+
 </body>
 </html>
