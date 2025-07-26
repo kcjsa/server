@@ -21,6 +21,7 @@
     border: 1px solid #ccc;
     border-radius: 6px;
     font-size: 16px;
+    box-sizing: border-box;
   }
   button {
     width: 100%;
@@ -31,14 +32,22 @@
     border-radius: 6px;
     font-size: 16px;
     cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover:not(:disabled) {
+    background: #45a049;
   }
   button:disabled {
     background: #9ccc9c;
+    cursor: not-allowed;
   }
   #msg {
     margin-top: 15px;
     font-weight: bold;
     color: green;
+  }
+  #msg.error {
+    color: red;
   }
 </style>
 </head>
@@ -56,35 +65,45 @@
 <p id="msg"></p>
 
 <script>
-const form = document.getElementById("applyForm");
-const msg = document.getElementById("msg");
+  const form = document.getElementById("applyForm");
+  const msg = document.getElementById("msg");
+  const submitButton = form.querySelector('button[type="submit"]');
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  msg.textContent = "送信中...";
-  const data = Object.fromEntries(new FormData(form).entries());
+    msg.textContent = "";
+    msg.classList.remove("error");
 
-  try {
-    const res = await fetch("https://orange-star-1efd.kurea-ch124.workers.dev", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-      mode: "cors"
-    });
+    submitButton.disabled = true;
+    msg.textContent = "送信中...";
 
-    if (res.ok) {
-      msg.textContent = "申請が完了しました。管理者に通知されました。";
-      form.reset();
-    } else {
-      const text = await res.text();
-      msg.textContent = "送信に失敗しました：" + text;
+    const data = Object.fromEntries(new FormData(form).entries());
+
+    try {
+      const res = await fetch("https://orange-star-1efd.kurea-ch124.workers.dev", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        mode: "cors"
+      });
+
+      if (res.ok) {
+        msg.textContent = "申請が完了しました。管理者に通知されました。";
+        form.reset();
+      } else {
+        const text = await res.text();
+        msg.textContent = "送信に失敗しました：" + text;
+        msg.classList.add("error");
+      }
+    } catch (err) {
+      msg.textContent = "送信に失敗しました（ネットワークエラー）";
+      msg.classList.add("error");
+      console.error(err);
     }
-  } catch (err) {
-    msg.textContent = "送信に失敗しました（ネットワークエラー）";
-    console.error(err);
-  }
-});
+
+    submitButton.disabled = false;
+  });
 </script>
 
 </body>
