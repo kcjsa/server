@@ -71,7 +71,7 @@
     const data = Object.fromEntries(new FormData(form).entries());
 
     try {
-      const res = await fetch("https://your-worker-url.workers.dev", {
+      const res = await fetch("https://orange-star-1efd.kurea-ch124.workers.dev", {  // ←ここをあなたのWorker URLに置き換える
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
